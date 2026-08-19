@@ -4,14 +4,31 @@ const App = (() => {
     const sendBtn = document.getElementById('send-btn');
     const statusEl = document.getElementById('status');
 
+    function updateStatus(status, detail) {
+        const labels = {
+            online: 'online',
+            offline: 'offline',
+            syncing: 'syncing...',
+            degraded: 'degraded',
+        };
+        statusEl.textContent = labels[status] || status;
+        statusEl.className = `header__status header__status--${status === 'online' ? 'online' : 'offline'}`;
+
+        if (detail && status === 'online') {
+            statusEl.textContent = `online (+${detail} synced)`;
+        }
+    }
+
     async function checkHealth() {
+        if (!navigator.onLine) {
+            updateStatus('offline');
+            return;
+        }
         try {
             await API.health();
-            statusEl.textContent = 'online';
-            statusEl.className = 'header__status header__status--online';
+            updateStatus(Offline.getStatus());
         } catch {
-            statusEl.textContent = 'offline';
-            statusEl.className = 'header__status header__status--offline';
+            updateStatus('degraded');
         }
     }
 
@@ -25,18 +42,28 @@ const App = (() => {
         try {
             const data = await API.chat(text, Chat.getConversationId());
             Chat.hideTyping();
-            Chat.addMessage(data.response, 'assistant');
+            Chat.addMessage(data.response, 'assistant', data.cached);
 
             if (data.conversation_id) {
                 Chat.setConversationId(data.conversation_id);
             }
         } catch (err) {
             Chat.hideTyping();
-            Chat.showError(`Failed to get response: ${err.message}`);
+            if (err.message.includes('offline')) {
+                Chat.addMessage(text, 'user');
+                Chat.showError('You are offline. Your message has been queued and will send when you reconnect.');
+            } else {
+                Chat.showError(`Failed to get response: ${err.message}`);
+            }
         } finally {
             sendBtn.disabled = false;
             field.focus();
         }
+    }
+
+    function loadRecentMessages() {
+        const recent = Cache.getRecentLocal();
+        recent.forEach(msg => Chat.addMessage(msg.content, msg.role, true));
     }
 
     function init() {
@@ -46,6 +73,11 @@ const App = (() => {
             if (text) sendMessage(text);
         });
 
+        Offline.init((status, detail) => {
+            updateStatus(status, detail);
+        });
+
+        loadRecentMessages();
         checkHealth();
         setInterval(checkHealth, 60000);
     }

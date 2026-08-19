@@ -6,7 +6,7 @@ const Chat = (() => {
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function addMessage(text, role) {
+    function addMessage(text, role, cached = false) {
         const div = document.createElement('div');
         div.className = `message message--${role}`;
 
@@ -16,7 +16,8 @@ const Chat = (() => {
 
         const time = document.createElement('span');
         time.className = 'message__time';
-        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const now = new Date();
+        time.textContent = (cached ? '(cached) ' : '') + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         div.appendChild(time);
 
         messagesEl.appendChild(div);
