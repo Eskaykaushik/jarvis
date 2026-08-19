@@ -1,5 +1,5 @@
 const API = (() => {
-    const BASE_URL = localStorage.getItem('jarvis_api_url') || 'http://localhost:8000';
+    const BASE_URL = localStorage.getItem('jarvis_api_url') || 'https://jarvis-xtqt.onrender.com';
 
     async function request(endpoint, options = {}) {
         const url = `${BASE_URL}${endpoint}`;
