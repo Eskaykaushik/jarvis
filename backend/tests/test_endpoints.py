@@ -1,10 +1,22 @@
 import pytest
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 from app.main import app
+from app.auth.deps import require_user
 
 
 client = TestClient(app)
+
+
+@contextmanager
+def _authenticate(user_id: str = "test-user"):
+    """Override the require_user dependency to bypass JWT verification in tests."""
+    app.dependency_overrides[require_user] = lambda: user_id
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
 
 
 def test_health_endpoint():
@@ -30,9 +42,20 @@ def test_health_degraded():
 def test_conversation_not_found():
     mock_redis_instance = AsyncMock()
     mock_redis_instance.get = AsyncMock(return_value=None)
-    with patch("app.routes.conversation.get_redis_safe", new_callable=AsyncMock, return_value=mock_redis_instance):
+    with _authenticate(), \
+         patch("app.routes.conversation.get_redis_safe", new_callable=AsyncMock, return_value=mock_redis_instance):
         response = client.get("/conversation/nonexistent")
         assert response.status_code == 404
+
+
+def test_chat_requires_auth():
+    response = client.post("/chat", json={"message": "hi"})
+    assert response.status_code == 401
+
+
+def test_conversation_requires_auth():
+    response = client.get("/conversation/test-id")
+    assert response.status_code == 401
 
 
 @pytest.mark.skip(reason="Requires mocking inside TestClient thread - tested via manual integration")
@@ -48,7 +71,6 @@ def test_chat_no_providers():
 @pytest.mark.asyncio
 async def test_chat_succeeds_without_redis():
     """Chat must degrade gracefully when Redis is down, not crash."""
-    from unittest.mock import patch
     from app.services.chat import handle_chat
     from app.models.schemas import ChatRequest
 
@@ -66,6 +88,6 @@ async def test_chat_succeeds_without_redis():
     with patch("app.services.chat.cache_get_safe", new_callable=AsyncMock, return_value=None), \
          patch("app.services.chat.cache_get_stale_safe", new_callable=AsyncMock, return_value=None), \
          patch("app.services.chat.get_redis_safe", new_callable=AsyncMock, return_value=None):
-        response = await handle_chat(ChatRequest(message="hi"), FakeChain())
+        response = await handle_chat(ChatRequest(message="hi"), FakeChain(), "test-user")
         assert response.response == "hello back"
         assert response.cached is False

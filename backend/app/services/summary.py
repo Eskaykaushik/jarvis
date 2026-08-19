@@ -18,12 +18,14 @@ logger = logging.getLogger(__name__)
 async def handle_summary(
     request: SummaryRequest,
     chain: FallbackChain,
+    user_id: str | None = None,
 ) -> SummaryResponse:
     r = await get_redis_safe()
     if r is None:
         raise RedisUnavailableError("Redis is unavailable; cannot load conversation")
 
-    raw = await r.get(f"conv:{request.conversation_id}")
+    prefix = f"conv:{user_id}:" if user_id else "conv:"
+    raw = await r.get(f"{prefix}{request.conversation_id}")
     if not raw:
         raise ValueError("Conversation not found")
 

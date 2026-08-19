@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
+from app.auth.deps import AuthenticatedUser
 from app.models.schemas import ChatRequest, ChatResponse
 from app.services.chat import handle_chat
 
@@ -17,9 +18,9 @@ def set_chain(chain):
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, user_id: AuthenticatedUser):
     try:
-        return await handle_chat(request, _chain)
+        return await handle_chat(request, _chain, user_id)
     except RuntimeError as e:
         logger.error("Chat failed: %s", e)
         raise HTTPException(status_code=503, detail="All providers failed. Please try again.")

@@ -1,9 +1,9 @@
 import json
-import time
 import logging
 
 from fastapi import APIRouter, HTTPException
 
+from app.auth.deps import AuthenticatedUser
 from app.cache.redis_cache import get_redis_safe
 from app.models.schemas import Conversation
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/conversation/{conversation_id}", response_model=Conversation)
-async def get_conversation(conversation_id: str):
+async def get_conversation(conversation_id: str, user_id: AuthenticatedUser):
     r = await get_redis_safe()
     if r is None:
         raise HTTPException(
@@ -20,7 +20,7 @@ async def get_conversation(conversation_id: str):
             detail="Cache service is unavailable. Please try again later.",
         )
 
-    raw = await r.get(f"conv:{conversation_id}")
+    raw = await r.get(f"conv:{user_id}:{conversation_id}")
     if not raw:
         raise HTTPException(status_code=404, detail="Conversation not found")
 

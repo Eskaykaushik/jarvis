@@ -1,10 +1,18 @@
 const API = (() => {
     const BASE_URL = localStorage.getItem('jarvis_api_url') || 'https://jarvis-xtqt.onrender.com';
 
+    function getAuthHeaders() {
+        const token = Auth.getToken();
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    }
+
     async function request(endpoint, options = {}) {
         const url = `${BASE_URL}${endpoint}`;
         const config = {
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+            },
             ...options,
         };
 

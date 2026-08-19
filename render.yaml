@@ -26,6 +26,10 @@ services:
         sync: false
       - key: CEREBRAS_MODEL
         value: llama-3.3-70b
+      - key: SUPABASE_URL
+        value: https://uvznfwrfhpfsefsdecei.supabase.co
+      - key: SUPABASE_JWT_SECRET
+        sync: false
       - key: REDIS_URL
         sync: false
       - key: RESEND_API_KEY
