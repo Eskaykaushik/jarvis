@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     groq_api_key: str = Field(default="", description="Groq API key")
-    groq_model: str = Field(default="llama-3.3-70b-versatile", description="Groq model name")
+    groq_model: str = Field(default="qwen/qwen3.6-27b", description="Groq model name")
     openrouter_api_key: str = Field(default="", description="OpenRouter API key")
     openrouter_model: str = Field(default="meta-llama/llama-3.1-8b-instruct:free", description="OpenRouter model name")
     together_api_key: str = Field(default="", description="Together AI API key")
