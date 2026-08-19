@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: jarvis-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: meta-llama/llama-3.1-8b-instruct:free
+      - key: TOGETHER_API_KEY
+        sync: false
+      - key: TOGETHER_MODEL
+        value: meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: CEREBRAS_API_KEY
+        sync: false
+      - key: CEREBRAS_MODEL
+        value: llama-3.3-70b
+      - key: REDIS_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: noreply@example.com
+      - key: MODEL_MAX_TOKENS
+        value: 1024
+      - key: MODEL_TIMEOUT
+        value: 30
+      - key: CHAT_CACHE_TTL
+        value: 3600
+      - key: SUMMARY_CACHE_TTL
+        value: 21600
+      - key: ALLOWED_ORIGINS
+        value: '["*"]'

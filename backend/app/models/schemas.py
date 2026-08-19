@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class ChatRequest(BaseModel):
@@ -17,7 +17,6 @@ class ChatResponse(BaseModel):
 class ConversationMessage(BaseModel):
     role: str
     content: str
-    timestamp: float
 
 
 class Conversation(BaseModel):
@@ -25,3 +24,27 @@ class Conversation(BaseModel):
     messages: list[ConversationMessage]
     created_at: float
     updated_at: float
+
+
+class SummaryRequest(BaseModel):
+    conversation_id: str
+    custom_prompt: str | None = None
+
+
+class SummaryResponse(BaseModel):
+    summary: str
+    conversation_id: str
+    model: str = ""
+    provider: str = ""
+
+
+class EmailRequest(BaseModel):
+    to: EmailStr
+    subject: str
+    body: str
+    conversation_id: str | None = None
+
+
+class EmailResponse(BaseModel):
+    sent: bool
+    message_id: str = ""

@@ -116,13 +116,15 @@ Fallback chain: **Groq → OpenRouter → Together → Gemini → Cerebras**
 ## Phase 5: API Endpoints ✅ DONE
 **Goal**: All routes wired with reliability + caching
 
-- [x] `schemas.py` — `ChatRequest`, `ChatResponse`, `Conversation`, `ConversationMessage`
+- [x] `schemas.py` — `ChatRequest`, `ChatResponse`, `SummaryRequest`, `SummaryResponse`, `EmailRequest`, `EmailResponse`, `Conversation`, `ConversationMessage`
 - [x] `services/chat.py` — cache check → stale check → fallback chain → cache result → save conversation
-- [x] `routes/chat.py` — `POST /chat` wired with fallback chain
-- [x] `main.py` — providers loaded from env, fallback chain initialized, router included, health endpoint with provider status + Redis check
-- [ ] `POST /summary` — Summarize a conversation
-- [ ] `POST /email/send` — Send summary via Resend
-- [ ] `GET /conversation/{id}` — Retrieve conversation
+- [x] `services/summary.py` — load conversation → format → fallback chain → cache result
+- [x] `services/email.py` — Resend API integration
+- [x] `routes/chat.py` — `POST /chat`
+- [x] `routes/summary.py` — `POST /summary`
+- [x] `routes/email.py` — `POST /email/send`
+- [x] `routes/conversation.py` — `GET /conversation/{id}`
+- [x] `main.py` — all 4 routers wired, fallback chain initialized, health endpoint with provider status + Redis check
 - [ ] Tests: integration tests with mocked providers + cache
 
 ---
@@ -140,14 +142,15 @@ Fallback chain: **Groq → OpenRouter → Together → Gemini → Cerebras**
 
 ---
 
-## Phase 7: Frontend Caching & Offline
+## Phase 7: Frontend Caching & Offline ✅ DONE
 **Goal**: Offline resilience + fast repeated loads
 
-- `cache.js` — LocalStorage (last 10 messages) + IndexedDB (full history)
-- `offline.js` — Queue outbound requests when offline; retry on reconnect
-- Status indicator (online/offline/degraded)
-- IndexedDB schema: conversations table with timestamps
-- Auto-sync when backend becomes reachable again
+- [x] `cache.js` — LocalStorage (last 10 messages) + IndexedDB (full conversation history)
+- [x] `offline.js` — Queue outbound requests when offline; auto-retry on reconnect; status tracking
+- [x] Status indicator — online/offline/syncing/degraded in header
+- [x] IndexedDB schema — conversations table with timestamps
+- [x] Auto-sync — queued requests process when backend becomes reachable
+- [x] Recent messages load from LocalStorage on page open
 
 ---
 
