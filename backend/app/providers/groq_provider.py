@@ -1,4 +1,5 @@
 import logging
+import re
 
 from groq import AsyncGroq
 
@@ -6,6 +7,11 @@ from app.config import settings
 from app.providers.base import BaseProvider, ProviderResponse
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_thinking(text: str) -> str:
+    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    return cleaned.strip()
 
 
 class GroqProvider(BaseProvider):
@@ -28,7 +34,7 @@ class GroqProvider(BaseProvider):
             timeout=settings.model_timeout,
         )
 
-        text = response.choices[0].message.content
+        text = _strip_thinking(response.choices[0].message.content)
         tokens = response.usage.total_tokens if response.usage else 0
 
         logger.info("Groq response: %d tokens", tokens)

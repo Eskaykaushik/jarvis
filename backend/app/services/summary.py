@@ -2,7 +2,12 @@ import json
 import logging
 
 from app.cache.cache_key import make_cache_key
-from app.cache.redis_cache import cache_get, cache_set, get_redis
+from app.cache.redis_cache import (
+    RedisUnavailableError,
+    cache_get_safe,
+    cache_set_safe,
+    get_redis_safe,
+)
 from app.config import settings
 from app.models.schemas import SummaryRequest, SummaryResponse
 from app.reliability.fallback_chain import FallbackChain
@@ -14,7 +19,10 @@ async def handle_summary(
     request: SummaryRequest,
     chain: FallbackChain,
 ) -> SummaryResponse:
-    r = await get_redis()
+    r = await get_redis_safe()
+    if r is None:
+        raise RedisUnavailableError("Redis is unavailable; cannot load conversation")
+
     raw = await r.get(f"conv:{request.conversation_id}")
     if not raw:
         raise ValueError("Conversation not found")
@@ -30,7 +38,7 @@ async def handle_summary(
     full_prompt = f"{prompt}\n\n{conversation_text}"
 
     cache_key = make_cache_key("summary", full_prompt)
-    cached = await cache_get(cache_key)
+    cached = await cache_get_safe(cache_key)
     if cached:
         return SummaryResponse(
             summary=cached["response"],
@@ -41,7 +49,7 @@ async def handle_summary(
 
     result = await chain.generate(full_prompt)
 
-    await cache_set(
+    await cache_set_safe(
         cache_key,
         result.text,
         ttl=settings.summary_cache_ttl,

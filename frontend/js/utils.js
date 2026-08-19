@@ -13,5 +13,36 @@ const Utils = (() => {
         return new Date(date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    return { escapeHtml, formatTime, formatDate };
+    function renderMarkdown(text) {
+        if (typeof marked === 'undefined') return escapeHtml(text);
+
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            sanitize: false,
+        });
+
+        const raw = marked.parse(text);
+        const sanitized = DOMPurify ? DOMPurify.sanitize(raw) : raw;
+        return sanitized;
+    }
+
+    function addCopyButtons(container) {
+        container.querySelectorAll('pre').forEach(pre => {
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.textContent = 'Copy';
+            btn.addEventListener('click', () => {
+                const code = pre.querySelector('code');
+                navigator.clipboard.writeText(code?.textContent || pre.textContent).then(() => {
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy', 2000);
+                });
+            });
+            pre.style.position = 'relative';
+            pre.appendChild(btn);
+        });
+    }
+
+    return { escapeHtml, formatTime, formatDate, renderMarkdown, addCopyButtons };
 })();

@@ -3,7 +3,12 @@ import time
 import uuid
 
 from app.cache.cache_key import make_cache_key
-from app.cache.redis_cache import cache_get, cache_get_stale, cache_set
+from app.cache.redis_cache import (
+    cache_get_safe,
+    cache_get_stale_safe,
+    cache_set_safe,
+    get_redis_safe,
+)
 from app.config import settings
 from app.models.schemas import ChatRequest, ChatResponse
 from app.reliability.fallback_chain import FallbackChain
@@ -23,7 +28,7 @@ async def handle_chat(
 
     cache_key = make_cache_key("chat", request.message, context)
 
-    cached = await cache_get(cache_key)
+    cached = await cache_get_safe(cache_key)
     if cached:
         logger.info("Cache hit for key %s", cache_key)
         return ChatResponse(
@@ -34,7 +39,7 @@ async def handle_chat(
             cached=True,
         )
 
-    stale = await cache_get_stale(cache_key)
+    stale = await cache_get_stale_safe(cache_key)
     if stale:
         logger.info("Stale hit for key %s", cache_key)
         _ = chain.generate(
@@ -52,7 +57,7 @@ async def handle_chat(
     messages = [{"role": "system", "content": _system_prompt}] + context
     result = await chain.generate(request.message, messages)
 
-    await cache_set(
+    await cache_set_safe(
         cache_key,
         result.text,
         ttl=settings.chat_cache_ttl,
@@ -72,18 +77,21 @@ async def handle_chat(
 
 
 async def _load_conversation(conversation_id: str) -> list[dict]:
-    from app.cache.redis_cache import cache_get as redis_get
+    from app.cache.redis_cache import cache_get_safe
 
-    data = await redis_get(f"conv:{conversation_id}")
+    data = await cache_get_safe(f"conv:{conversation_id}")
     if data and isinstance(data, dict):
         return data.get("messages", [])
     return []
 
 
 async def _save_conversation(conversation_id: str, messages: list[dict]):
-    from app.cache.redis_cache import get_redis
+    from app.cache.redis_cache import get_redis_safe
 
-    r = await get_redis()
+    r = await get_redis_safe()
+    if r is None:
+        logger.warning("Redis unavailable; conversation %s not persisted", conversation_id)
+        return
     import json
     payload = json.dumps({
         "messages": messages,
