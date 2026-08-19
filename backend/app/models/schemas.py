@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class ChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
+    user_id: str | None = None
 
 
 class ChatResponse(BaseModel):
@@ -29,6 +30,7 @@ class Conversation(BaseModel):
 class SummaryRequest(BaseModel):
     conversation_id: str
     custom_prompt: str | None = None
+    user_id: str | None = None
 
 
 class SummaryResponse(BaseModel):

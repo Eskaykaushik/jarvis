@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jarvis — AI Assistant</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
-    <div class="app">
+    <div class="app" id="app">
         <header class="header">
             <h1 class="header__title">Jarvis</h1>
             <span class="header__status" id="status">connecting...</span>
+            <button class="header__signout" id="signout-btn" style="display:none;">Sign out</button>
         </header>
 
         <main class="chat" id="chat">
@@ -34,10 +36,39 @@
         </form>
     </div>
 
+    <div class="auth-screen" id="auth-screen">
+        <div class="auth-card">
+            <h1 class="auth-card__title">Jarvis</h1>
+            <p class="auth-card__subtitle">Sign in to continue</p>
+
+            <div class="auth-divider"><span>or</span></div>
+
+            <form class="auth-form" id="auth-form">
+                <input type="email" id="auth-email" class="auth-input" placeholder="Email" required>
+                <input type="password" id="auth-password" class="auth-input" placeholder="Password" required>
+                <div class="auth-error" id="auth-error"></div>
+                <button type="submit" class="auth-submit" id="auth-submit">Sign In</button>
+            </form>
+
+            <button class="auth-switch" id="auth-switch">Need an account? Sign Up</button>
+
+            <div class="auth-divider"><span>or</span></div>
+            <div class="auth-oauth">
+                <button class="auth-oauth-btn auth-google" id="auth-google">
+                    <span>Sign in with Google</span>
+                </button>
+                <button class="auth-oauth-btn auth-github" id="auth-github">
+                    <span>Sign in with GitHub</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/marked.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cache.js"></script>
     <script src="js/offline.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/sidebar.js"></script>

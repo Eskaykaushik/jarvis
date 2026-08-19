@@ -30,6 +30,9 @@ class Settings(BaseSettings):
 
     allowed_origins: list[str] = Field(default=["*"], description="CORS allowed origins")
 
+    supabase_url: str = Field(default="", description="Supabase project URL")
+    supabase_jwt_secret: str = Field(default="", description="Supabase JWT secret for token verification")
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
