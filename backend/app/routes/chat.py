@@ -24,5 +24,5 @@ async def chat(request: ChatRequest):
         logger.error("Chat failed: %s", e)
         raise HTTPException(status_code=503, detail="All providers failed. Please try again.")
     except Exception as e:
-        logger.error("Chat error: %s", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Unexpected chat error")
+        raise HTTPException(status_code=500, detail="An unexpected error occurred. Please try again.")
