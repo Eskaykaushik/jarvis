@@ -70,9 +70,26 @@ const API = (() => {
         return request(`/conversation/${id}`);
     }
 
+    async function listConversations() {
+        try {
+            return await request('/conversations');
+        } catch {
+            return [];
+        }
+    }
+
+    async function deleteConversation(id) {
+        try {
+            await request(`/conversation/${id}`, { method: 'DELETE' });
+        } catch {
+            // Best effort — server may already be gone
+        }
+        await Cache.deleteConversation(id);
+    }
+
     async function health() {
         return request('/health');
     }
 
-    return { chat, getConversation, health, BASE_URL };
+    return { chat, getConversation, listConversations, deleteConversation, health, BASE_URL };
 })();

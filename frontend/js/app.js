@@ -48,7 +48,9 @@ const App = (() => {
             Chat.addMessage(data.response, 'assistant', data.cached);
 
             if (data.conversation_id) {
+                const oldId = Chat.getConversationId();
                 Chat.setConversationId(data.conversation_id);
+                Sidebar.addConversation(data.conversation_id, text);
             }
         } catch (err) {
             Chat.hideTyping();
@@ -62,6 +64,37 @@ const App = (() => {
             sendBtn.disabled = false;
             field.focus();
         }
+    }
+
+    async function handleSelectConversation(id) {
+        Sidebar.setActive(id);
+        Chat.setConversationId(id);
+        Chat.clearMessages();
+
+        try {
+            const conv = await API.getConversation(id);
+            if (conv && conv.messages) {
+                Chat.loadMessages(conv.messages);
+            }
+        } catch (e) {
+            console.error('Failed to load conversation:', e);
+            Chat.showError('Failed to load conversation.');
+        }
+    }
+
+    async function handleDeleteConversation(id) {
+        await API.deleteConversation(id);
+        Sidebar.removeConversation(id);
+        if (Chat.getConversationId() === id) {
+            Chat.clearMessages();
+            Sidebar.clearActive();
+        }
+    }
+
+    function handleNewChat() {
+        Chat.clearMessages();
+        Sidebar.clearActive();
+        field.focus();
     }
 
     function loadRecentMessages() {
@@ -160,6 +193,7 @@ const App = (() => {
                 const text = field.value.trim();
                 if (text) sendMessage(text);
             });
+            Sidebar.init(handleSelectConversation, handleDeleteConversation, handleNewChat);
             loadRecentMessages();
             checkHealth();
             setInterval(checkHealth, 60000);

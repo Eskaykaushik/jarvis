@@ -27,6 +27,12 @@ class Conversation(BaseModel):
     updated_at: float
 
 
+class ConversationSummary(BaseModel):
+    id: str
+    title: str
+    updated_at: float
+
+
 class SummaryRequest(BaseModel):
     conversation_id: str
     custom_prompt: str | None = None

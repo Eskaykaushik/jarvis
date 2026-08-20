@@ -10,9 +10,14 @@ const Chat = (() => {
         const div = document.createElement('div');
         div.className = `message message--${role}`;
 
-        const p = document.createElement('p');
-        p.textContent = text;
-        div.appendChild(p);
+        if (role === 'assistant') {
+            div.classList.add('message--markdown');
+            div.innerHTML = marked.parse(text);
+        } else {
+            const p = document.createElement('p');
+            p.textContent = text;
+            div.appendChild(p);
+        }
 
         const time = document.createElement('span');
         time.className = 'message__time';
@@ -55,5 +60,15 @@ const Chat = (() => {
         return conversationId;
     }
 
-    return { addMessage, showTyping, hideTyping, showError, setConversationId, getConversationId };
+    function clearMessages() {
+        messagesEl.innerHTML = '<div class="message message--system"><p>Hi, I\'m Jarvis. Ask me anything.</p></div>';
+        conversationId = null;
+    }
+
+    function loadMessages(msgs) {
+        messagesEl.innerHTML = '';
+        msgs.forEach(m => addMessage(m.content, m.role));
+    }
+
+    return { addMessage, showTyping, hideTyping, showError, setConversationId, getConversationId, clearMessages, loadMessages };
 })();
