@@ -61,7 +61,7 @@ const Chat = (() => {
     }
 
     function clearMessages() {
-        messagesEl.innerHTML = '<div class="message message--system"><p>Hi, I\'m Jarvis. Ask me anything.</p></div>';
+        messagesEl.innerHTML = '<div class="message message--system"><p>Hi, I\'m Kaushix. Ask me anything.</p></div>';
         conversationId = null;
     }
 

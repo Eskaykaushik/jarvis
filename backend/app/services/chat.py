@@ -15,7 +15,7 @@ from app.reliability.fallback_chain import FallbackChain
 
 logger = logging.getLogger(__name__)
 
-_system_prompt = "You are Jarvis, a helpful and concise AI assistant."
+_system_prompt = "You are Kaushix, a helpful and concise AI assistant."
 
 
 async def handle_chat(

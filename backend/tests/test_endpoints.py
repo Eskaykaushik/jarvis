@@ -25,7 +25,7 @@ def test_health_endpoint():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["service"] == "Jarvis"
+        assert data["service"] == "Kaushix"
         assert "providers" in data
         assert "redis" in data
 

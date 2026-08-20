@@ -3,7 +3,7 @@ from pydantic import Field
 
 
 class Settings(BaseSettings):
-    app_name: str = "Jarvis"
+    app_name: str = "Kaushix"
     debug: bool = False
 
     groq_api_key: str = Field(default="", description="Groq API key")
