@@ -72,7 +72,7 @@ const Auth = (() => {
         const { data, error } = await c.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: window.location.origin + '/jarvis/',
             },
         });
         if (error) throw error;
@@ -84,7 +84,7 @@ const Auth = (() => {
         const { data, error } = await c.auth.signInWithOAuth({
             provider: 'github',
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: window.location.origin + '/jarvis/',
             },
         });
         if (error) throw error;
