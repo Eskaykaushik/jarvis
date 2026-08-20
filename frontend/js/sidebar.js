@@ -1,12 +1,22 @@
 const Sidebar = (() => {
     let activeId = null;
     let conversations = [];
+    let searchQuery = '';
 
     const listEl = document.getElementById('conversation-list');
     const sidebarEl = document.getElementById('sidebar');
     const toggleBtn = document.getElementById('sidebar-toggle');
     const closeBtn = document.getElementById('sidebar-close');
     const newChatBtn = document.getElementById('new-chat-btn');
+    const searchEl = document.getElementById('conversation-search');
+
+    function debounce(fn, ms) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), ms);
+        };
+    }
 
     function formatTime(ts) {
         const d = new Date(ts * 1000);
@@ -24,13 +34,26 @@ const Sidebar = (() => {
         return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
 
+    function getFiltered() {
+        if (!searchQuery) return conversations;
+        const q = searchQuery.toLowerCase();
+        return conversations.filter(c => c.title.toLowerCase().includes(q));
+    }
+
     function render() {
-        if (conversations.length === 0) {
+        const filtered = getFiltered();
+
+        if (conversations.length === 0 && !searchQuery) {
             listEl.innerHTML = '<div class="sidebar__empty">No conversations yet</div>';
             return;
         }
 
-        listEl.innerHTML = conversations.map(c => `
+        if (filtered.length === 0) {
+            listEl.innerHTML = `<div class="sidebar__empty">${searchQuery ? 'No matches' : 'No conversations yet'}</div>`;
+            return;
+        }
+
+        listEl.innerHTML = filtered.map(c => `
             <div class="sidebar__item ${c.id === activeId ? 'sidebar__item--active' : ''}" data-id="${c.id}">
                 <div class="sidebar__item-text">
                     <span class="sidebar__item-title">${escapeHtml(c.title)}</span>
@@ -71,6 +94,12 @@ const Sidebar = (() => {
         render();
     }
 
+    function clearSearch() {
+        searchQuery = '';
+        searchEl.value = '';
+        render();
+    }
+
     function refresh() {
         load();
     }
@@ -91,7 +120,7 @@ const Sidebar = (() => {
             conversations.sort((a, b) => b.updated_at - a.updated_at);
         }
         activeId = id;
-        render();
+        clearSearch();
     }
 
     function removeConversation(id) {
@@ -136,6 +165,11 @@ const Sidebar = (() => {
             close();
         });
 
+        searchEl.addEventListener('input', debounce((e) => {
+            searchQuery = e.target.value.trim();
+            render();
+        }, 150));
+
         load();
     }
 
@@ -145,6 +179,7 @@ const Sidebar = (() => {
         select,
         setActive,
         clearActive,
+        clearSearch,
         refresh,
         addConversation,
         removeConversation,
