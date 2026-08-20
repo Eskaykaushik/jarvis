@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 
@@ -7,6 +8,28 @@ from fastapi import Depends, HTTPException, Request, status
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+_signing_key = None
+
+
+def _get_signing_key():
+    global _signing_key
+    if _signing_key is not None:
+        return _signing_key
+
+    raw = settings.supabase_jwt_secret
+    if not raw:
+        raise RuntimeError("SUPABASE_JWT_SECRET is not configured")
+
+    if raw.strip().startswith("{"):
+        jwk_set = json.loads(raw)
+        keys = jwk_set.get("keys", [jwk_set])
+        jwk_data = keys[0]
+        _signing_key = jwt.PyJWK(jwk_data)
+    else:
+        _signing_key = jwt.PyJWK.from_dict({"k": raw, "kty": "oct", "alg": "HS256"})
+
+    return _signing_key
 
 
 def get_current_user_id(request: Request) -> str | None:
@@ -23,10 +46,11 @@ def get_current_user_id(request: Request) -> str | None:
     token = auth_header[len("Bearer "):].strip()
 
     try:
+        signing_key = _get_signing_key()
         payload = jwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=[signing_key.algorithm_name],
             audience=settings.supabase_url,
         )
     except jwt.ExpiredSignatureError:
