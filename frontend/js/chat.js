@@ -12,7 +12,7 @@ const Chat = (() => {
 
         if (role === 'assistant') {
             div.classList.add('message--markdown');
-            div.innerHTML = marked.parse(text);
+            div.innerHTML = Utils.renderMarkdown(text);
         } else {
             const p = document.createElement('p');
             p.textContent = text;

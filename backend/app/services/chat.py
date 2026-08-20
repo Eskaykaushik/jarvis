@@ -1,3 +1,5 @@
+import asyncio
+import json
 import logging
 import time
 import uuid
@@ -43,9 +45,8 @@ async def handle_chat(
     stale = await cache_get_stale_safe(cache_key)
     if stale:
         logger.info("Stale hit for key %s", cache_key)
-        _ = chain.generate(
-            request.message,
-            [{"role": "system", "content": _system_prompt}] + context[:-1],
+        asyncio.create_task(
+            _refresh_cache(chain, request.message, context, cache_key)
         )
         return ChatResponse(
             response=stale["response"],
@@ -89,12 +90,26 @@ async def _load_conversation(user_id: str | None, conversation_id: str) -> list[
     return []
 
 
+async def _refresh_cache(chain: FallbackChain, prompt: str, context: list[dict], cache_key: str):
+    try:
+        messages = [{"role": "system", "content": _system_prompt}] + context
+        result = await chain.generate(prompt, messages)
+        await cache_set_safe(
+            cache_key,
+            result.text,
+            ttl=settings.chat_cache_ttl,
+            model=result.model,
+            provider=result.provider,
+        )
+    except Exception as e:
+        logger.warning("Background cache refresh failed: %s", e)
+
+
 async def _save_conversation(user_id: str | None, conversation_id: str, messages: list[dict]):
     r = await get_redis_safe()
     if r is None:
         logger.warning("Redis unavailable; conversation %s not persisted", conversation_id)
         return
-    import json
     payload = json.dumps({
         "messages": messages,
         "updated_at": time.time(),

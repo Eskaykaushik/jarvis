@@ -19,12 +19,13 @@ const Utils = (() => {
         marked.setOptions({
             breaks: true,
             gfm: true,
-            sanitize: false,
         });
 
         const raw = marked.parse(text);
-        const sanitized = DOMPurify ? DOMPurify.sanitize(raw) : raw;
-        return sanitized;
+        if (typeof DOMPurify !== 'undefined') {
+            return DOMPurify.sanitize(raw, { ADD_TAGS: ['button'] });
+        }
+        return escapeHtml(text);
     }
 
     function addCopyButtons(container) {

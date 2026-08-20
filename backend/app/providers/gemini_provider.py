@@ -26,8 +26,11 @@ class GeminiProvider(BaseProvider):
 
         async with httpx.AsyncClient(timeout=settings.model_timeout) as client:
             response = await client.post(
-                f"{self.api_url}?key={self.api_key}",
-                headers={"Content-Type": "application/json"},
+                self.api_url,
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": self.api_key,
+                },
                 json={
                     "contents": contents,
                     "generationConfig": {"maxOutputTokens": settings.model_max_tokens},
@@ -52,8 +55,11 @@ class GeminiProvider(BaseProvider):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 response = await client.post(
-                    f"{self.api_url}?key={self.api_key}",
-                    headers={"Content-Type": "application/json"},
+                    self.api_url,
+                    headers={
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": self.api_key,
+                    },
                     json={
                         "contents": [{"role": "user", "parts": [{"text": "ping"}]}],
                         "generationConfig": {"maxOutputTokens": 5},
